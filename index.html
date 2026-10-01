@@ -23,7 +23,9 @@ input{width:100%;box-sizing:border-box;padding:9px;border:1px solid var(--line);
 table{width:100%;border-collapse:collapse;min-width:520px}
 th,td{border:1px solid var(--line);padding:3px;text-align:left;font-size:14px}
 th{background:var(--card);padding:8px;font-size:13px}
-td input{border:none;background:transparent;border-radius:0;padding:8px}
+td input,td textarea{border:none;background:transparent;border-radius:0;padding:8px;color:var(--fg);font:inherit;font-size:14px}
+td textarea{width:100%;box-sizing:border-box;resize:none;overflow:hidden;display:block;height:36px;line-height:1.35}
+.pv,.pf,tfoot{display:none}
 td.n{width:34px;text-align:center;color:var(--mut)}
 td.q input{text-align:center}
 td.x{width:38px;text-align:center}
@@ -41,23 +43,35 @@ button.p{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:60
 #cam video{width:100%;max-height:300px;background:#000;border-radius:8px}
 details{margin-top:14px;font-size:14px}
 .pr{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
-.ph{display:none}
+@page{size:A4;margin:12mm 10mm 8mm}
 @media print{
- :root{--bg:#fff;--fg:#000;--line:#999;--card:#fff;padding:0}
- .bar,.x,.hint,.scan,details{display:none!important}
- .ph{display:block;text-align:center;font-size:20px;font-weight:700;margin-bottom:6px}
- h1{display:none}
- .top input{border:none;padding:2px 0;font-weight:600}
+ :root{--bg:#fff;--fg:#000;--line:#777;--card:#fff;padding:0}
+ body{background:#fff;color:#000}
+ .bar,.x,.hint,.scan,details,h1,td input,td textarea{display:none!important}
  .wrap{padding:0;max-width:none}
- table{min-width:0}
+ .ph{display:block;text-align:center;margin-bottom:8px}
+ .ph .shop{font-size:26px;font-weight:700;letter-spacing:1px}
+ .ph .sub{font-size:13px;color:#444;letter-spacing:3px}
+ .top input{border:none;padding:2px 0;font-weight:600;background:transparent;color:#000}
+ .tw{overflow:visible}
+ table{min-width:0;width:100%;table-layout:fixed}
+ th,td{border:1px solid #777;color:#000}
+ th.c1{width:6%}th.c2{width:46%}th.c3{width:20%}th.c4{width:16%}th.c5{width:12%}
+ td.n{width:auto}
+ .pv{display:block;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;padding:6px 7px;font-size:13px;line-height:1.35}
+ td.q .pv{text-align:center}
+ tr{break-inside:avoid;page-break-inside:avoid}
  tr.empty{display:none}
+ tfoot{display:table-footer-group}
+ tfoot td{border:none;height:13mm;padding:0}
+ .pf{display:block;position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:12.5px;border-top:1px solid #777;padding-top:4px;background:#fff;color:#000}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
  <h1>🛍️ Order List</h1>
- <div class="ph">ORDER LIST</div>
+ <div class="ph"><div class="shop">WELCOME COSMETICS</div><div class="sub">ORDER LIST</div></div>
  <div class="top">
   <label>Date<input id="date" type="date"></label>
   <label>Sale man / Party<input id="party" placeholder="Name"></label>
@@ -78,8 +92,9 @@ details{margin-top:14px;font-size:14px}
  </div>
 
  <div class="tw"><table>
-  <thead><tr><th>#</th><th>Product Name</th><th>Color</th><th>Size</th><th>Qty</th><th class="x"></th></tr></thead>
+  <thead><tr><th class="c1">#</th><th class="c2">Product Name</th><th class="c3">Color</th><th class="c4">Size</th><th class="c5">Qty</th><th class="x"></th></tr></thead>
   <tbody id="rows"></tbody>
+  <tfoot><tr><td colspan="5"></td></tr></tfoot>
  </table></div>
  <div class="bar">
   <button onclick="addRow()">+ Row</button>
@@ -89,6 +104,7 @@ details{margin-top:14px;font-size:14px}
  </div>
  <p class="hint" style="font-size:12px;color:var(--mut)">Save PDF dabane par print window khulegi — wahan "Save as PDF" select karein. Same barcode dobara scan karne par qty +1 hoti hai.</p>
 
+ <div class="pf">Main Bazar, Begumkot, Shahdra, Lahore</div>
  <details><summary><b>Saved products</b> (<span id="pc">0</span>)</summary><div id="plist"></div></details>
 </div>
 <script>
@@ -116,7 +132,7 @@ function addItem(code,p){
  var trs=[].slice.call(rows.children),tr=trs.filter(function(t){return t.dataset.bc===code})[0];
  if(tr){var q=tr.querySelector('[data-k=q]');q.value=(parseFloat(q.value)||0)+1;refresh();return}
  var e=trs.filter(function(t){return t.classList.contains('empty')})[0];
- if(e){e.dataset.bc=code;var i=e.querySelectorAll('input');i[0].value=p.p;i[1].value=p.c;i[2].value=p.s;i[3].value=1;refresh()}
+ if(e){e.dataset.bc=code;var i=e.querySelectorAll('[data-k]');i[0].value=p.p;i[1].value=p.c;i[2].value=p.s;i[3].value=1;refresh()}
  else addRow({p:p.p,c:p.c,s:p.s,q:1,bc:code});
 }
 function saveNew(){
@@ -150,12 +166,12 @@ function addRow(v){
  v=v||{};
  var tr=document.createElement('tr');tr.dataset.bc=v.bc||'';
  tr.innerHTML='<td class="n"></td>'+
-  '<td><input data-k="p" placeholder="Product"></td>'+
-  '<td><input data-k="c" placeholder="Color"></td>'+
-  '<td><input data-k="s" placeholder="Size"></td>'+
-  '<td class="q"><input data-k="q" inputmode="numeric" placeholder="0"></td>'+
+  '<td><textarea rows="1" data-k="p" placeholder="Product"></textarea><div class="pv"></div></td>'+
+  '<td><textarea rows="1" data-k="c" placeholder="Color"></textarea><div class="pv"></div></td>'+
+  '<td><textarea rows="1" data-k="s" placeholder="Size"></textarea><div class="pv"></div></td>'+
+  '<td class="q"><input data-k="q" inputmode="numeric" placeholder="0"><div class="pv"></div></td>'+
   '<td class="x"><button onclick="delRow(this)" style="padding:4px 8px">✕</button></td>';
- tr.querySelectorAll('input').forEach(function(i){i.value=v[i.dataset.k]||'';i.addEventListener('input',refresh)});
+ tr.querySelectorAll('[data-k]').forEach(function(i){i.value=v[i.dataset.k]||'';i.addEventListener('input',refresh);if(i.tagName==='TEXTAREA')i.addEventListener('keydown',function(e){if(e.key==='Enter')e.preventDefault()})});
  rows.appendChild(tr);refresh();
 }
 function delRow(b){b.closest('tr').remove();if(!rows.children.length)addRow();refresh()}
@@ -163,7 +179,9 @@ function refresh(){
  var t=0;
  [].forEach.call(rows.children,function(tr,i){
   tr.querySelector('.n').textContent=i+1;
-  var vals=[].map.call(tr.querySelectorAll('input'),function(x){return x.value.trim()});
+  var fs=tr.querySelectorAll('[data-k]'),pvs=tr.querySelectorAll('.pv');
+  fs.forEach(function(x,k){pvs[k].textContent=x.value;if(x.tagName==='TEXTAREA'){x.style.height='36px';x.style.height=Math.max(36,x.scrollHeight)+'px'}});
+  var vals=[].map.call(fs,function(x){return x.value.trim()});
   tr.classList.toggle('empty',!vals.some(Boolean));
   if(!vals.some(Boolean))tr.dataset.bc='';
   t+=parseFloat(vals[3])||0;
@@ -172,7 +190,7 @@ function refresh(){
 }
 function data(){
  return {d:$('date').value,p:$('party').value,
-  r:[].map.call(rows.children,function(tr){var o={bc:tr.dataset.bc||''};tr.querySelectorAll('input').forEach(function(i){o[i.dataset.k]=i.value});return o})};
+  r:[].map.call(rows.children,function(tr){var o={bc:tr.dataset.bc||''};tr.querySelectorAll('[data-k]').forEach(function(i){o[i.dataset.k]=i.value});return o})};
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(data()))}catch(e){}}
 function load(){
@@ -183,7 +201,7 @@ function load(){
  renderDb();
 }
 function clearAll(){if(!confirm('Sab clear karna hai? (Saved products rahenge)'))return;rows.innerHTML='';for(var n=0;n<10;n++)addRow();$('party').value=''}
-function savePdf(){stopCam();var old=document.title,p=$('party').value.trim(),d=$('date').value;document.title='Order_'+(p?p+'_':'')+d;window.print();setTimeout(function(){document.title=old},500)}
+function savePdf(){stopCam();refresh();var old=document.title,p=$('party').value.trim(),d=$('date').value;document.title='Order_'+(p?p+'_':'')+d;window.print();setTimeout(function(){document.title=old},500)}
 $('date').addEventListener('input',save);$('party').addEventListener('input',save);
 load();
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
