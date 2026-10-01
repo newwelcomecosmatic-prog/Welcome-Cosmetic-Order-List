@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Order List</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b0306a">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#fff;--fg:#1d1d1f;--mut:#6b6b70;--line:#d9d9de;--acc:#b0306a;--card:#faf7f9}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--fg:#f2f2f4;--mut:#9b9ba3;--line:#35353b;--acc:#e06aa0;--card:#202025}}
+:root[data-theme="dark"]{--bg:#17171a;--fg:#f2f2f4;--mut:#9b9ba3;--line:#35353b;--acc:#e06aa0;--card:#202025}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 12px;color:var(--acc)}
+.top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.top label{flex:1;min-width:140px;font-size:12px;color:var(--mut)}
+input{width:100%;box-sizing:border-box;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);font-size:15px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{border:1px solid var(--line);padding:3px;text-align:left;font-size:14px}
+th{background:var(--card);padding:8px;font-size:13px}
+td input{border:none;background:transparent;border-radius:0;padding:8px}
+td.n{width:34px;text-align:center;color:var(--mut)}
+td.q input{text-align:center}
+td.x{width:38px;text-align:center}
+button{padding:10px 16px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);font-size:15px;cursor:pointer}
+button.p{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+.bar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.tot{margin-left:auto;font-weight:600}
+.scan{border:2px solid var(--acc);border-radius:12px;padding:10px;margin-bottom:14px;background:var(--card)}
+.scan .r{display:flex;gap:8px}
+#msg{font-size:13px;margin-top:6px;min-height:18px;color:var(--mut)}
+#newp{display:none;margin-top:8px;padding:8px;border:1px dashed var(--acc);border-radius:8px}
+#newp .g{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+#newp .g input{flex:1;min-width:110px}
+#cam{display:none;margin-top:8px}
+#cam video{width:100%;max-height:300px;background:#000;border-radius:8px}
+details{margin-top:14px;font-size:14px}
+.pr{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
+.ph{display:none}
+@media print{
+ :root{--bg:#fff;--fg:#000;--line:#999;--card:#fff;padding:0}
+ .bar,.x,.hint,.scan,details{display:none!important}
+ .ph{display:block;text-align:center;font-size:20px;font-weight:700;margin-bottom:6px}
+ h1{display:none}
+ .top input{border:none;padding:2px 0;font-weight:600}
+ .wrap{padding:0;max-width:none}
+ table{min-width:0}
+ tr.empty{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <h1>🛍️ Order List</h1>
+ <div class="ph">ORDER LIST</div>
+ <div class="top">
+  <label>Date<input id="date" type="date"></label>
+  <label>Sale man / Party<input id="party" placeholder="Name"></label>
+ </div>
+
+ <div class="scan">
+  <div class="r">
+   <input id="sc" placeholder="📷 Barcode scan karein (scanner ya camera)" autocomplete="off" inputmode="none">
+   <button class="p" onclick="startCam()">📷 Camera</button>
+  </div>
+  <div id="msg"></div>
+  <div id="cam"><video id="vid" playsinline muted></video><button onclick="stopCam()" style="margin-top:6px">✕ Camera band</button></div>
+  <div id="newp">
+   <b>Naya product — sirf ek baar likhna hai</b> <span id="npc" style="color:var(--mut);font-size:12px"></span>
+   <div class="g"><input id="np" placeholder="Product name"><input id="nc" placeholder="Color"><input id="ns" placeholder="Size"></div>
+   <button class="p" onclick="saveNew()">Save product</button> <button onclick="cancelNew()">Cancel</button>
+  </div>
+ </div>
+
+ <div class="tw"><table>
+  <thead><tr><th>#</th><th>Product Name</th><th>Color</th><th>Size</th><th>Qty</th><th class="x"></th></tr></thead>
+  <tbody id="rows"></tbody>
+ </table></div>
+ <div class="bar">
+  <button onclick="addRow()">+ Row</button>
+  <button class="p" onclick="savePdf()">💾 Save PDF</button>
+  <button onclick="clearAll()">Clear</button>
+  <span class="tot">Total Qty: <span id="tot">0</span></span>
+ </div>
+ <p class="hint" style="font-size:12px;color:var(--mut)">Save PDF dabane par print window khulegi — wahan "Save as PDF" select karein. Same barcode dobara scan karne par qty +1 hoti hai.</p>
+
+ <details><summary><b>Saved products</b> (<span id="pc">0</span>)</summary><div id="plist"></div></details>
+</div>
+<script>
+var KEY='orderlist_v1',PKEY='orderlist_products_v1';
+var rows=document.getElementById('rows'),pending=null,stream=null,timer=null,zr=null,lastc='',lastt=0;
+function $(i){return document.getElementById(i)}
+function msg(t,c){var m=$('msg');m.textContent=t;m.style.color=c||'var(--mut)'}
+function getDb(){try{return JSON.parse(localStorage.getItem(PKEY))||{}}catch(e){return{}}}
+function setDb(d){try{localStorage.setItem(PKEY,JSON.stringify(d))}catch(e){}renderDb()}
+function renderDb(){
+ var d=getDb(),k=Object.keys(d);$('pc').textContent=k.length;
+ $('plist').innerHTML=k.map(function(c){var p=d[c];return '<div class="pr"><span>'+esc(p.p)+' · '+esc(p.c)+' · '+esc(p.s)+' <small style="color:var(--mut)">'+esc(c)+'</small></span><button style="padding:2px 8px" data-c="'+esc(c)+'" onclick="delProd(this.dataset.c)">✕</button></div>'}).join('')||'<p style="color:var(--mut)">Abhi koi product save nahi.</p>';
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
+function delProd(c){var d=getDb();delete d[c];setDb(d)}
+function beep(){try{var a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();setTimeout(function(){o.stop();a.close()},90)}catch(e){}}
+
+function onScan(code){
+ code=(code||'').trim();if(!code)return;
+ beep();var p=getDb()[code];
+ if(p){addItem(code,p);msg('✔ '+p.p+' add ho gaya','var(--acc)')}
+ else{pending=code;$('npc').textContent='('+code+')';$('np').value='';$('nc').value='';$('ns').value='';$('newp').style.display='block';msg('Ye product pehli baar scan hua — naam likh dein.');$('np').focus()}
+}
+function addItem(code,p){
+ var trs=[].slice.call(rows.children),tr=trs.filter(function(t){return t.dataset.bc===code})[0];
+ if(tr){var q=tr.querySelector('[data-k=q]');q.value=(parseFloat(q.value)||0)+1;refresh();return}
+ var e=trs.filter(function(t){return t.classList.contains('empty')})[0];
+ if(e){e.dataset.bc=code;var i=e.querySelectorAll('input');i[0].value=p.p;i[1].value=p.c;i[2].value=p.s;i[3].value=1;refresh()}
+ else addRow({p:p.p,c:p.c,s:p.s,q:1,bc:code});
+}
+function saveNew(){
+ var n=$('np').value.trim();if(!n){$('np').focus();return}
+ var d=getDb();d[pending]={p:n,c:$('nc').value.trim(),s:$('ns').value.trim()};setDb(d);
+ var c=pending;cancelNew();addItem(c,d[c]);msg('✔ Product save + list mein add','var(--acc)');
+}
+function cancelNew(){pending=null;$('newp').style.display='none';$('sc').focus()}
+$('sc').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();var v=this.value;this.value='';onScan(v)}});
+
+function camHit(code){var n=Date.now();if(code===lastc&&n-lastt<2500)return;lastc=code;lastt=n;onScan(code)}
+async function startCam(){
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})}
+ catch(e){msg('Camera ki ijazat nahi mili. Barcode scanner ya browser setting use karein.','#c0392b');return}
+ var v=$('vid');v.srcObject=stream;await v.play();$('cam').style.display='block';msg('Barcode camera ke samne rakhein…');
+ if('BarcodeDetector' in window){
+  var det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
+  timer=setInterval(async function(){try{var r=await det.detect(v);if(r.length)camHit(r[0].rawValue)}catch(e){}},300);
+ }else{
+  var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+  s.onload=function(){try{zr=new ZXing.BrowserMultiFormatReader();zr.decodeFromVideoElement(v,function(r){if(r)camHit(r.getText())})}catch(e){msg('Scan engine start nahi hua.','#c0392b')}};
+  s.onerror=function(){msg('Scan engine load nahi hua.','#c0392b')};document.head.appendChild(s);
+ }
+}
+function stopCam(){
+ clearInterval(timer);try{if(zr)zr.reset()}catch(e){}
+ if(stream)stream.getTracks().forEach(function(t){t.stop()});stream=null;$('cam').style.display='none';
+}
+
+function addRow(v){
+ v=v||{};
+ var tr=document.createElement('tr');tr.dataset.bc=v.bc||'';
+ tr.innerHTML='<td class="n"></td>'+
+  '<td><input data-k="p" placeholder="Product"></td>'+
+  '<td><input data-k="c" placeholder="Color"></td>'+
+  '<td><input data-k="s" placeholder="Size"></td>'+
+  '<td class="q"><input data-k="q" inputmode="numeric" placeholder="0"></td>'+
+  '<td class="x"><button onclick="delRow(this)" style="padding:4px 8px">✕</button></td>';
+ tr.querySelectorAll('input').forEach(function(i){i.value=v[i.dataset.k]||'';i.addEventListener('input',refresh)});
+ rows.appendChild(tr);refresh();
+}
+function delRow(b){b.closest('tr').remove();if(!rows.children.length)addRow();refresh()}
+function refresh(){
+ var t=0;
+ [].forEach.call(rows.children,function(tr,i){
+  tr.querySelector('.n').textContent=i+1;
+  var vals=[].map.call(tr.querySelectorAll('input'),function(x){return x.value.trim()});
+  tr.classList.toggle('empty',!vals.some(Boolean));
+  if(!vals.some(Boolean))tr.dataset.bc='';
+  t+=parseFloat(vals[3])||0;
+ });
+ $('tot').textContent=t;save();
+}
+function data(){
+ return {d:$('date').value,p:$('party').value,
+  r:[].map.call(rows.children,function(tr){var o={bc:tr.dataset.bc||''};tr.querySelectorAll('input').forEach(function(i){o[i.dataset.k]=i.value});return o})};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data()))}catch(e){}}
+function load(){
+ var s=null;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+ if(s){$('date').value=s.d||'';$('party').value=s.p||'';(s.r||[]).forEach(addRow)}
+ if(!$('date').value)$('date').valueAsDate=new Date();
+ for(var n=rows.children.length;n<10;n++)addRow();
+ renderDb();
+}
+function clearAll(){if(!confirm('Sab clear karna hai? (Saved products rahenge)'))return;rows.innerHTML='';for(var n=0;n<10;n++)addRow();$('party').value=''}
+function savePdf(){stopCam();var old=document.title,p=$('party').value.trim(),d=$('date').value;document.title='Order_'+(p?p+'_':'')+d;window.print();setTimeout(function(){document.title=old},500)}
+$('date').addEventListener('input',save);$('party').addEventListener('input',save);
+load();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>
